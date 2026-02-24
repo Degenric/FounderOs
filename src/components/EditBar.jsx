@@ -3,7 +3,6 @@ import { useEdit } from "../context/EditContext";
 
 const MONO = "'Victor Mono', monospace";
 const ORANGE = "#f97316";
-const SUPABASE_CONFIGURED = !!import.meta.env.VITE_SUPABASE_URL;
 
 export default function EditBar() {
   const { isEditing, login, logout, save, saveStatus } = useEdit();
@@ -172,11 +171,6 @@ export default function EditBar() {
               }}
             >
               — Enter Credentials
-            {!SUPABASE_CONFIGURED && (
-              <div style={{ color: "#f87171", fontSize: 8, marginTop: 6, letterSpacing: "0.08em", textTransform: "none", fontWeight: 400 }}>
-                ⚠ Supabase env vars not found in this build
-              </div>
-            )}
             </div>
             <form onSubmit={handleLogin}>
               <input
