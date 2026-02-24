@@ -6,7 +6,6 @@ const ORANGE = "#f97316";
 
 export default function EditBar() {
   const { isEditing, login, logout, save, saveStatus } = useEdit();
-  console.log("[EditBar] rendering, isEditing:", isEditing);
   const [showModal, setShowModal] = useState(false);
   const [password, setPassword] = useState("");
   const [loginError, setLoginError] = useState("");
