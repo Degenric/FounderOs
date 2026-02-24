@@ -106,17 +106,26 @@ export default function EditBar() {
             position: "fixed",
             bottom: 24,
             right: 24,
-            zIndex: 9999,
-            background: ORANGE,
-            border: "none",
-            color: "#000",
+            zIndex: 100,
+            background: "rgba(12,12,12,0.85)",
+            border: "1px solid rgba(255,255,255,0.1)",
+            color: "rgba(255,255,255,0.28)",
             fontFamily: MONO,
-            fontSize: 11,
-            fontWeight: 700,
+            fontSize: 8,
             letterSpacing: "0.18em",
             textTransform: "uppercase",
-            padding: "10px 22px",
+            padding: "7px 16px",
             cursor: "pointer",
+            backdropFilter: "blur(8px)",
+            transition: "color 0.2s, border-color 0.2s",
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.color = "#f7f7f7";
+            e.currentTarget.style.borderColor = "rgba(255,255,255,0.3)";
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.color = "rgba(255,255,255,0.28)";
+            e.currentTarget.style.borderColor = "rgba(255,255,255,0.1)";
           }}
         >
           Edit
