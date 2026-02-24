@@ -9,8 +9,7 @@ export function EditProvider({ children }) {
   const [isEditing, setIsEditing] = useState(false);
   const [saveStatus, setSaveStatus] = useState("idle"); // 'idle'|'saving'|'saved'|'error'
 
-  async function login(password) {
-    const email = import.meta.env.VITE_EDIT_EMAIL;
+  async function login(email, password) {
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     if (!error) setIsEditing(true);
     return { error };

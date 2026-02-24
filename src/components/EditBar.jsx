@@ -7,6 +7,7 @@ const ORANGE = "#f97316";
 export default function EditBar() {
   const { isEditing, login, logout, save, saveStatus } = useEdit();
   const [showModal, setShowModal] = useState(false);
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loginError, setLoginError] = useState("");
   const [loggingIn, setLoggingIn] = useState(false);
@@ -15,12 +16,13 @@ export default function EditBar() {
     e.preventDefault();
     setLoggingIn(true);
     setLoginError("");
-    const { error } = await login(password);
+    const { error } = await login(email, password);
     setLoggingIn(false);
     if (error) {
-      setLoginError("Wrong password");
+      setLoginError("Invalid credentials");
     } else {
       setShowModal(false);
+      setEmail("");
       setPassword("");
     }
   }
@@ -136,7 +138,7 @@ export default function EditBar() {
       {showModal && !isEditing && (
         <>
           <div
-            onClick={() => { setShowModal(false); setLoginError(""); setPassword(""); }}
+            onClick={() => { setShowModal(false); setLoginError(""); setEmail(""); setPassword(""); }}
             style={{
               position: "fixed",
               inset: 0,
@@ -172,11 +174,31 @@ export default function EditBar() {
             </div>
             <form onSubmit={handleLogin}>
               <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="Email"
+                autoFocus
+                style={{
+                  width: "100%",
+                  background: "rgba(255,255,255,0.04)",
+                  border: "1px solid rgba(255,255,255,0.1)",
+                  color: "#f7f7f7",
+                  fontFamily: MONO,
+                  fontSize: 12,
+                  padding: "10px 12px",
+                  outline: "none",
+                  marginBottom: 8,
+                  boxSizing: "border-box",
+                }}
+                onFocus={(e) => (e.currentTarget.style.borderColor = "rgba(255,255,255,0.3)")}
+                onBlur={(e) => (e.currentTarget.style.borderColor = "rgba(255,255,255,0.1)")}
+              />
+              <input
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="Password"
-                autoFocus
                 style={{
                   width: "100%",
                   background: "rgba(255,255,255,0.04)",
