@@ -86,13 +86,37 @@ function AppInner() {
     setContent((prev) => {
       const updateList = (list) =>
         list.map((f) => (f.id === featureId ? { ...f, [field]: value } : f));
-      return {
+
+      let next = {
         ...prev,
         CORE_FEATURES: updateList(prev.CORE_FEATURES),
         MEDIA_ITEMS: updateList(prev.MEDIA_ITEMS),
         IRL_ITEMS: updateList(prev.IRL_ITEMS),
       };
+
+      // When the stakeholders array on a feature changes, sync stakeholder touchpoints
+      if (field === "stakeholders") {
+        const blockKey =
+          prev.CORE_FEATURES.some((f) => f.id === featureId) ? "features" :
+          prev.MEDIA_ITEMS.some((f) => f.id === featureId)   ? "media"    : "irl";
+
+        next = {
+          ...next,
+          STAKEHOLDERS: next.STAKEHOLDERS.map((s) => {
+            const had = s.touchpoints[blockKey]?.includes(featureId) ?? false;
+            const has = value.includes(s.id);
+            if (had === has) return s;
+            const updated = has
+              ? [...(s.touchpoints[blockKey] ?? []), featureId]
+              : (s.touchpoints[blockKey] ?? []).filter((id) => id !== featureId);
+            return { ...s, touchpoints: { ...s.touchpoints, [blockKey]: updated } };
+          }),
+        };
+      }
+
+      return next;
     });
+
     // Keep selectedFeature in sync so FeaturePanel re-renders immediately
     setSelectedFeature((prev) =>
       prev?.item.id === featureId

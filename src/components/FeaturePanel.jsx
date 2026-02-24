@@ -2,6 +2,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Building2, Hexagon, Landmark, TrendingUp, Wrench, Sparkles, Users } from "lucide-react";
 import { STAKEHOLDERS } from "../data/ecosystem.js";
 import EditableText from "./EditableText.jsx";
+import { useEdit } from "../context/EditContext.jsx";
 
 const MONO = "'Victor Mono', monospace";
 
@@ -47,9 +48,20 @@ function SectionLabel({ label, color }) {
 }
 
 export default function FeaturePanel({ feature, accentColor, onClose, onFeatureChange }) {
-  const involvedNodes = (feature?.stakeholders ?? [])
+  const { isEditing } = useEdit();
+
+  const selectedIds = feature?.stakeholders ?? [];
+  const involvedNodes = selectedIds
     .map((id) => ALL_NODES.find((s) => s.id === id))
     .filter(Boolean);
+
+  function toggleStakeholder(nodeId) {
+    const current = feature?.stakeholders ?? [];
+    const next = current.includes(nodeId)
+      ? current.filter((id) => id !== nodeId)
+      : [...current, nodeId];
+    onFeatureChange?.(feature.id, "stakeholders", next);
+  }
 
   return (
     <AnimatePresence>
@@ -163,32 +175,46 @@ export default function FeaturePanel({ feature, accentColor, onClose, onFeatureC
 
               {/* Key Stakeholders */}
               <div style={{ marginBottom: 26 }}>
-                <SectionLabel label="Key Stakeholders" color={accentColor} />
+                <SectionLabel
+                  label={isEditing ? "Key Stakeholders — click to toggle" : "Key Stakeholders"}
+                  color={accentColor}
+                />
                 <div style={{ display: "flex", flexWrap: "wrap", gap: 7 }}>
-                  {involvedNodes.map((node, i) => {
+                  {(isEditing ? ALL_NODES : involvedNodes).map((node, i) => {
                     const Icon = ICON_MAP[node.id];
+                    const active = selectedIds.includes(node.id);
                     return (
                       <motion.div
                         key={node.id}
                         initial={{ opacity: 0, y: 6 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: i * 0.05, duration: 0.22 }}
+                        onClick={isEditing ? () => toggleStakeholder(node.id) : undefined}
                         style={{
                           display: "flex",
                           alignItems: "center",
                           gap: 6,
                           padding: "5px 11px",
-                          border: `1px solid ${node.color}50`,
-                          background: `${node.color}0d`,
+                          border: isEditing
+                            ? `1px solid ${active ? node.color + "90" : "rgba(255,255,255,0.12)"}`
+                            : `1px solid ${node.color}50`,
+                          background: isEditing
+                            ? active ? `${node.color}18` : "transparent"
+                            : `${node.color}0d`,
                           fontSize: 9,
                           fontFamily: MONO,
                           fontWeight: 700,
                           letterSpacing: "0.1em",
                           textTransform: "uppercase",
-                          color: node.color,
+                          color: isEditing
+                            ? active ? node.color : "rgba(255,255,255,0.25)"
+                            : node.color,
+                          cursor: isEditing ? "pointer" : "default",
+                          opacity: isEditing && !active ? 0.55 : 1,
+                          transition: "all 0.18s ease",
                         }}
                       >
-                        {Icon && <Icon size={10} color={node.color} />}
+                        {Icon && <Icon size={10} color={isEditing && !active ? "rgba(255,255,255,0.25)" : node.color} />}
                         {node.label}
                       </motion.div>
                     );
