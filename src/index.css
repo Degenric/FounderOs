@@ -1,0 +1,76 @@
+@import "tailwindcss";
+
+:root {
+  --bg-base: #0c0c0c;
+  --bg-surface: rgba(255, 255, 255, 0.03);
+  --bg-elevated: rgba(255, 255, 255, 0.06);
+  --border: rgba(255, 255, 255, 0.08);
+  --accent: #8b9aff;
+  --text-primary: #f7f7f7;
+  --text-muted: rgba(255, 255, 255, 0.35);
+  --mono: 'Victor Mono', 'Courier New', monospace;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  background: #0c0c0c;
+  color: var(--text-primary);
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: 'Victor Mono', 'Courier New', monospace;
+  background: #0c0c0c;
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Spoke line dash animation */
+.spoke-line {
+  stroke-dasharray: 5 7;
+  animation: dash 2s linear infinite;
+}
+
+@keyframes dash {
+  to { stroke-dashoffset: -24; }
+}
+
+/* Mono label utility */
+.mono {
+  font-family: 'Victor Mono', monospace;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.font-barlow {
+  font-family: 'Victor Mono', monospace;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+/* Card states */
+.card-highlight { transition: opacity 0.3s, filter 0.3s; }
+.card-dimmed {
+  opacity: 0.15;
+  filter: grayscale(100%);
+  pointer-events: none;
+  transition: opacity 0.3s, filter 0.3s;
+}
+
+/* Stakeholder node floating animation */
+@keyframes floatNode {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-7px); }
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 2px; }
