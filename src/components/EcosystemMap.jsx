@@ -1,5 +1,5 @@
-import { STAKEHOLDERS, CORE_FEATURES, MEDIA_ITEMS, IRL_ITEMS } from "../data/ecosystem.js";
 import StakeholderNode from "./StakeholderNode.jsx";
+import EditableText from "./EditableText.jsx";
 
 const CX = 500;
 const CY = 340;
@@ -50,7 +50,7 @@ function polarToXY(deg, r = RADIUS) {
   return { x: CX + r * Math.cos(rad), y: CY + r * Math.sin(rad) };
 }
 
-function CenterBlock({ block, items, highlightedIds, hasSelection, onFeatureSelect, selectedFeatureId }) {
+function CenterBlock({ block, items, highlightedIds, hasSelection, onFeatureSelect, selectedFeatureId, onTitleChange }) {
   const { title, accentColor, x, y, w, h, vertical } = block;
   const isBlockLit = hasSelection && highlightedIds.length > 0;
 
@@ -89,7 +89,12 @@ function CenterBlock({ block, items, highlightedIds, hasSelection, onFeatureSele
             flexShrink: 0,
           }}
         >
-          — {title}
+          —{" "}
+          <EditableText
+            value={title}
+            onChange={(val) => onTitleChange?.(val)}
+            style={{ color: accentColor }}
+          />
         </div>
 
         {vertical ? (
@@ -200,9 +205,12 @@ function CenterBlock({ block, items, highlightedIds, hasSelection, onFeatureSele
   );
 }
 
-export default function EcosystemMap({ selectedId, onSelect, onFeatureSelect, selectedFeatureId, selectedSubId, onSubSelect }) {
+export default function EcosystemMap({
+  selectedId, onSelect, onFeatureSelect, selectedFeatureId, selectedSubId, onSubSelect,
+  stakeholders, coreFeatures, mediaItems, irlItems, blocks, onBlockTitleChange,
+}) {
   const activeStakeholder = selectedId
-    ? STAKEHOLDERS.find((s) => s.id === selectedId)
+    ? stakeholders.find((s) => s.id === selectedId)
     : null;
 
   const hasSelection = !!selectedId;
@@ -218,11 +226,17 @@ export default function EcosystemMap({ selectedId, onSelect, onFeatureSelect, se
   }
 
   function getItems(blockId) {
-    if (blockId === "os") return CORE_FEATURES;
-    if (blockId === "media") return MEDIA_ITEMS;
-    if (blockId === "irl") return IRL_ITEMS;
+    if (blockId === "os") return coreFeatures;
+    if (blockId === "media") return mediaItems;
+    if (blockId === "irl") return irlItems;
     return [];
   }
+
+  // Merge editable titles into the geometry-hardcoded BLOCKS
+  const mergedBlocks = BLOCKS.map((b) => ({
+    ...b,
+    title: blocks?.find((pb) => pb.id === b.id)?.title ?? b.title,
+  }));
 
   return (
     <div
@@ -252,7 +266,7 @@ export default function EcosystemMap({ selectedId, onSelect, onFeatureSelect, se
           </radialGradient>
 
           {/* Per-stakeholder spoke gradient */}
-          {STAKEHOLDERS.map((s) => {
+          {stakeholders.map((s) => {
             const pos = polarToXY(s.angle);
             return (
               <linearGradient
@@ -279,7 +293,7 @@ export default function EcosystemMap({ selectedId, onSelect, onFeatureSelect, se
 
 
         {/* Spoke lines */}
-        {STAKEHOLDERS.map((s) => {
+        {stakeholders.map((s) => {
           const pos = polarToXY(s.angle);
           const isSelected = selectedId === s.id;
           const isDimmed = hasSelection && !isSelected;
@@ -320,10 +334,11 @@ export default function EcosystemMap({ selectedId, onSelect, onFeatureSelect, se
         })}
 
         {/* Three center building blocks */}
-        {BLOCKS.map((block) => (
+        {mergedBlocks.map((block) => (
           <CenterBlock
             key={block.id}
             block={block}
+            onTitleChange={(newTitle) => onBlockTitleChange?.(block.id, newTitle)}
             items={getItems(block.id)}
             highlightedIds={getHighlighted(block.id)}
             hasSelection={hasSelection}
@@ -333,7 +348,7 @@ export default function EcosystemMap({ selectedId, onSelect, onFeatureSelect, se
         ))}
 
         {/* Stakeholder nodes */}
-        {STAKEHOLDERS.map((s, idx) => {
+        {stakeholders.map((s, idx) => {
           const pos = polarToXY(s.angle);
           const isSelected = selectedId === s.id;
           const isGrayedOut = hasSelection && !isSelected;

@@ -1,4 +1,6 @@
 import { motion, AnimatePresence } from "framer-motion";
+import EditableText from "./EditableText.jsx";
+import EditableList from "./EditableList.jsx";
 
 const MONO = "'Victor Mono', monospace";
 
@@ -34,7 +36,7 @@ function PropRow({ text, color }) {
   );
 }
 
-function Section({ label, accentColor, items }) {
+function Section({ label, accentColor, items, onItemsChange }) {
   return (
     <div style={{ marginBottom: 22 }}>
       <div
@@ -53,22 +55,44 @@ function Section({ label, accentColor, items }) {
         — {label}
       </div>
       <ul style={{ listStyle: "none", display: "flex", flexDirection: "column", gap: 4 }}>
-        {items.map((item, i) => (
-          <motion.div
-            key={i}
-            initial={{ opacity: 0, x: 14 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: i * 0.05, duration: 0.25 }}
-          >
-            <PropRow text={item} color={accentColor} />
-          </motion.div>
-        ))}
+        <EditableList
+          items={items}
+          onChange={onItemsChange}
+          color={accentColor}
+          renderItem={(item, i, editProps) => (
+            <motion.div
+              key={i}
+              initial={{ opacity: 0, x: 14 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: i * 0.05, duration: 0.25 }}
+            >
+              <PropRow
+                color={accentColor}
+                text={
+                  editProps ? (
+                    <EditableText
+                      value={item}
+                      onChange={editProps.onChange}
+                      style={{
+                        fontSize: 11,
+                        fontFamily: MONO,
+                        color: "rgba(255,255,255,0.75)",
+                        lineHeight: 1.6,
+                        letterSpacing: "0.02em",
+                      }}
+                    />
+                  ) : item
+                }
+              />
+            </motion.div>
+          )}
+        />
       </ul>
     </div>
   );
 }
 
-export default function DetailPanel({ stakeholder, selectedSubId, onSubChange, onClose }) {
+export default function DetailPanel({ stakeholder, selectedSubId, onSubChange, onStakeholderChange, onClose }) {
   const activeSub = selectedSubId
     ? stakeholder?.subcategories?.find((s) => s.id === selectedSubId)
     : null;
@@ -78,11 +102,15 @@ export default function DetailPanel({ stakeholder, selectedSubId, onSubChange, o
   const displayGets = activeSub?.gets ?? stakeholder?.gets ?? [];
   const displayTagline = activeSub?.tagline ?? stakeholder?.tagline ?? "";
 
+  function changeField(field, value) {
+    if (!stakeholder) return;
+    onStakeholderChange?.(stakeholder.id, activeSub?.id ?? null, field, value);
+  }
+
   return (
     <AnimatePresence>
       {stakeholder && (
         <>
-          {/* Backdrop */}
           <motion.div
             key="backdrop"
             initial={{ opacity: 0 }}
@@ -90,15 +118,9 @@ export default function DetailPanel({ stakeholder, selectedSubId, onSubChange, o
             exit={{ opacity: 0 }}
             transition={{ duration: 0.18 }}
             onClick={onClose}
-            style={{
-              position: "fixed",
-              inset: 0,
-              background: "rgba(0,0,0,0.55)",
-              zIndex: 40,
-            }}
+            style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.55)", zIndex: 40 }}
           />
 
-          {/* Panel */}
           <motion.div
             key="panel"
             initial={{ x: "100%" }}
@@ -106,141 +128,68 @@ export default function DetailPanel({ stakeholder, selectedSubId, onSubChange, o
             exit={{ x: "100%" }}
             transition={{ type: "spring", stiffness: 320, damping: 32 }}
             style={{
-              position: "fixed",
-              top: 0,
-              right: 0,
-              width: 400,
-              height: "100vh",
+              position: "fixed", top: 0, right: 0,
+              width: 400, height: "100vh",
               background: "#0c0c0c",
-              borderLeft: `1px solid rgba(255,255,255,0.07)`,
-              zIndex: 50,
-              display: "flex",
-              flexDirection: "column",
-              overflow: "hidden",
+              borderLeft: "1px solid rgba(255,255,255,0.07)",
+              zIndex: 50, display: "flex", flexDirection: "column", overflow: "hidden",
             }}
           >
             {/* Header */}
             <div
               style={{
                 padding: "24px 24px 20px",
-                borderBottom: `1px solid rgba(255,255,255,0.06)`,
+                borderBottom: "1px solid rgba(255,255,255,0.06)",
                 background: `linear-gradient(135deg, ${accentColor}08, transparent)`,
                 position: "relative",
               }}
             >
-              {/* Close */}
               <button
                 onClick={onClose}
                 style={{
-                  position: "absolute",
-                  top: 16,
-                  right: 16,
-                  background: "transparent",
-                  border: "1px solid rgba(255,255,255,0.1)",
-                  color: "rgba(255,255,255,0.35)",
-                  cursor: "pointer",
-                  width: 26,
-                  height: 26,
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  fontSize: 14,
-                  fontFamily: MONO,
+                  position: "absolute", top: 16, right: 16,
+                  background: "transparent", border: "1px solid rgba(255,255,255,0.1)",
+                  color: "rgba(255,255,255,0.35)", cursor: "pointer",
+                  width: 26, height: 26, display: "flex", alignItems: "center",
+                  justifyContent: "center", fontSize: 14, fontFamily: MONO,
                   transition: "color 0.2s, border-color 0.2s",
                 }}
-                onMouseEnter={(e) => {
-                  e.target.style.color = "#f7f7f7";
-                  e.target.style.borderColor = "rgba(255,255,255,0.3)";
-                }}
-                onMouseLeave={(e) => {
-                  e.target.style.color = "rgba(255,255,255,0.35)";
-                  e.target.style.borderColor = "rgba(255,255,255,0.1)";
-                }}
-              >
-                ×
-              </button>
+                onMouseEnter={(e) => { e.target.style.color = "#f7f7f7"; e.target.style.borderColor = "rgba(255,255,255,0.3)"; }}
+                onMouseLeave={(e) => { e.target.style.color = "rgba(255,255,255,0.35)"; e.target.style.borderColor = "rgba(255,255,255,0.1)"; }}
+              >×</button>
 
-              {/* Color accent bar */}
-              <div
-                style={{
-                  width: 24,
-                  height: 2,
-                  background: accentColor,
-                  marginBottom: 14,
-                  boxShadow: `0 0 8px ${accentColor}80`,
-                  transition: "background 0.25s, box-shadow 0.25s",
-                }}
-              />
+              <div style={{ width: 24, height: 2, background: accentColor, marginBottom: 14, boxShadow: `0 0 8px ${accentColor}80`, transition: "background 0.25s" }} />
 
-              {/* Breadcrumb: parent / sub or just parent */}
+              {/* Label — breadcrumb or plain */}
               {activeSub ? (
                 <div style={{ marginBottom: 6 }}>
-                  <span
-                    style={{
-                      fontSize: 10,
-                      fontFamily: MONO,
-                      fontWeight: 700,
-                      letterSpacing: "0.08em",
-                      textTransform: "uppercase",
-                      color: `${stakeholder.color}60`,
-                    }}
-                  >
+                  <span style={{ fontSize: 10, fontFamily: MONO, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: `${stakeholder.color}60` }}>
                     {stakeholder.label}
                   </span>
-                  <span
-                    style={{
-                      fontSize: 10,
-                      fontFamily: MONO,
-                      color: "rgba(255,255,255,0.2)",
-                      margin: "0 8px",
-                    }}
-                  >
-                    /
-                  </span>
-                  <span
-                    style={{
-                      fontSize: 18,
-                      fontFamily: MONO,
-                      fontWeight: 700,
-                      letterSpacing: "0.08em",
-                      textTransform: "uppercase",
-                      color: accentColor,
-                    }}
-                  >
-                    {activeSub.label}
-                  </span>
+                  <span style={{ fontSize: 10, fontFamily: MONO, color: "rgba(255,255,255,0.2)", margin: "0 8px" }}>/</span>
+                  <EditableText
+                    value={activeSub.label}
+                    onChange={(val) => changeField("label", val)}
+                    style={{ fontSize: 18, fontFamily: MONO, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: accentColor }}
+                  />
                 </div>
               ) : (
-                <div
-                  style={{
-                    fontSize: 18,
-                    fontFamily: MONO,
-                    fontWeight: 700,
-                    letterSpacing: "0.08em",
-                    textTransform: "uppercase",
-                    color: accentColor,
-                    marginBottom: 6,
-                    transition: "color 0.25s",
-                  }}
-                >
-                  {stakeholder.label}
-                </div>
+                <EditableText
+                  value={stakeholder.label}
+                  onChange={(val) => changeField("label", val)}
+                  style={{ fontSize: 18, fontFamily: MONO, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: accentColor, display: "block", marginBottom: 6 }}
+                  tag="div"
+                />
               )}
 
-              <div
-                style={{
-                  fontSize: 10,
-                  fontFamily: MONO,
-                  color: "rgba(255,255,255,0.3)",
-                  letterSpacing: "0.06em",
-                  lineHeight: 1.6,
-                  transition: "opacity 0.25s",
-                }}
-              >
-                {displayTagline}
-              </div>
+              <EditableText
+                value={displayTagline}
+                onChange={(val) => changeField("tagline", val)}
+                style={{ fontSize: 10, fontFamily: MONO, color: "rgba(255,255,255,0.3)", letterSpacing: "0.06em", lineHeight: 1.6 }}
+                tag="div"
+              />
 
-              {/* Subcategory selector chips — shown when stakeholder has subs */}
+              {/* Subcategory chips */}
               {stakeholder.subcategories?.length > 0 && (
                 <div style={{ display: "flex", gap: 5, marginTop: 14, flexWrap: "wrap" }}>
                   {stakeholder.subcategories.map((sub) => {
@@ -248,20 +197,15 @@ export default function DetailPanel({ stakeholder, selectedSubId, onSubChange, o
                     return (
                       <div
                         key={sub.id}
+                        onClick={() => onSubChange?.(sub.id)}
                         style={{
-                          fontSize: 8,
-                          fontFamily: MONO,
-                          fontWeight: 700,
-                          letterSpacing: "0.1em",
-                          textTransform: "uppercase",
-                          padding: "3px 9px",
+                          fontSize: 8, fontFamily: MONO, fontWeight: 700, letterSpacing: "0.1em",
+                          textTransform: "uppercase", padding: "3px 9px",
                           border: `1px solid ${isFocused ? sub.color + "90" : "rgba(255,255,255,0.1)"}`,
                           background: isFocused ? `${sub.color}15` : "transparent",
                           color: isFocused ? sub.color : "rgba(255,255,255,0.3)",
-                          cursor: "pointer",
-                          transition: "all 0.2s ease",
+                          cursor: "pointer", transition: "all 0.2s ease",
                         }}
-                        onClick={() => onSubChange?.(sub.id)}
                       >
                         {sub.label}
                       </div>
@@ -277,42 +221,27 @@ export default function DetailPanel({ stakeholder, selectedSubId, onSubChange, o
                 label="Provides"
                 accentColor={accentColor}
                 items={displayProvides}
+                onItemsChange={(val) => changeField("provides", val)}
               />
               <Section
                 label="Gets"
                 accentColor="#8b9aff"
                 items={displayGets}
+                onItemsChange={(val) => changeField("gets", val)}
               />
             </div>
 
             {/* Footer */}
-            <div
-              style={{
-                padding: "14px 24px",
-                borderTop: "1px solid rgba(255,255,255,0.06)",
-              }}
-            >
+            <div style={{ padding: "14px 24px", borderTop: "1px solid rgba(255,255,255,0.06)" }}>
               <button
                 style={{
-                  width: "100%",
-                  padding: "10px 16px",
-                  background: "transparent",
-                  border: `1px solid ${accentColor}60`,
-                  color: accentColor,
-                  cursor: "pointer",
-                  fontSize: 9,
-                  fontFamily: MONO,
-                  fontWeight: 700,
-                  letterSpacing: "0.18em",
-                  textTransform: "uppercase",
-                  transition: "background 0.2s",
+                  width: "100%", padding: "10px 16px", background: "transparent",
+                  border: `1px solid ${accentColor}60`, color: accentColor, cursor: "pointer",
+                  fontSize: 9, fontFamily: MONO, fontWeight: 700, letterSpacing: "0.18em",
+                  textTransform: "uppercase", transition: "background 0.2s",
                 }}
-                onMouseEnter={(e) =>
-                  (e.target.style.background = `${accentColor}12`)
-                }
-                onMouseLeave={(e) =>
-                  (e.target.style.background = "transparent")
-                }
+                onMouseEnter={(e) => (e.target.style.background = `${accentColor}12`)}
+                onMouseLeave={(e) => (e.target.style.background = "transparent")}
               >
                 View Package Details →
               </button>

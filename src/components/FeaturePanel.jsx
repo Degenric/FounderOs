@@ -1,6 +1,7 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { Building2, Hexagon, Landmark, TrendingUp, Wrench, Sparkles, Users } from "lucide-react";
 import { STAKEHOLDERS } from "../data/ecosystem.js";
+import EditableText from "./EditableText.jsx";
 
 const MONO = "'Victor Mono', monospace";
 
@@ -45,7 +46,7 @@ function SectionLabel({ label, color }) {
   );
 }
 
-export default function FeaturePanel({ feature, accentColor, onClose }) {
+export default function FeaturePanel({ feature, accentColor, onClose, onFeatureChange }) {
   const involvedNodes = (feature?.stakeholders ?? [])
     .map((id) => ALL_NODES.find((s) => s.id === id))
     .filter(Boolean);
@@ -142,31 +143,19 @@ export default function FeaturePanel({ feature, accentColor, onClose }) {
                 }}
               />
 
-              <div
-                style={{
-                  fontSize: 18,
-                  fontFamily: MONO,
-                  fontWeight: 700,
-                  letterSpacing: "0.08em",
-                  textTransform: "uppercase",
-                  color: accentColor,
-                  marginBottom: 6,
-                }}
-              >
-                {feature.label}
-              </div>
+              <EditableText
+                value={feature.label}
+                onChange={(val) => onFeatureChange?.(feature.id, "label", val)}
+                style={{ fontSize: 18, fontFamily: MONO, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: accentColor, marginBottom: 6 }}
+                tag="div"
+              />
 
-              <div
-                style={{
-                  fontSize: 10,
-                  fontFamily: MONO,
-                  color: "rgba(255,255,255,0.3)",
-                  letterSpacing: "0.04em",
-                  lineHeight: 1.7,
-                }}
-              >
-                {feature.desc}
-              </div>
+              <EditableText
+                value={feature.desc}
+                onChange={(val) => onFeatureChange?.(feature.id, "desc", val)}
+                style={{ fontSize: 10, fontFamily: MONO, color: "rgba(255,255,255,0.3)", letterSpacing: "0.04em", lineHeight: 1.7 }}
+                tag="div"
+              />
             </div>
 
             {/* Scrollable body */}
@@ -210,17 +199,12 @@ export default function FeaturePanel({ feature, accentColor, onClose }) {
               {/* How it works */}
               <div style={{ marginBottom: 26 }}>
                 <SectionLabel label="How it works" color="rgba(255,255,255,0.3)" />
-                <p
-                  style={{
-                    fontSize: 11,
-                    fontFamily: MONO,
-                    color: "rgba(255,255,255,0.58)",
-                    lineHeight: 1.9,
-                    letterSpacing: "0.02em",
-                  }}
-                >
-                  {feature.how}
-                </p>
+                <EditableText
+                  value={feature.how}
+                  onChange={(val) => onFeatureChange?.(feature.id, "how", val)}
+                  style={{ fontSize: 11, fontFamily: MONO, color: "rgba(255,255,255,0.58)", lineHeight: 1.9, letterSpacing: "0.02em" }}
+                  tag="p"
+                />
               </div>
 
               {/* Platform Preview */}
