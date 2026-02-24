@@ -29,29 +29,34 @@ export function ContentProvider({ children }) {
 
   useEffect(() => {
     async function load() {
-      const { data, error } = await supabase
-        .from("content")
-        .select("data")
-        .eq("id", "main")
-        .maybeSingle();
+      try {
+        const { data, error } = await supabase
+          .from("content")
+          .select("data")
+          .eq("id", "main")
+          .maybeSingle();
 
-      if (error || !data) {
-        // First ever load — seed the row with defaults
-        await supabase.from("content").insert({ id: "main", data: DEFAULT_CONTENT });
-        return;
+        if (error || !data) {
+          // First ever load — seed the row with defaults
+          await supabase.from("content").insert({ id: "main", data: DEFAULT_CONTENT });
+          return;
+        }
+
+        // Merge: Supabase wins for data fields, geometry always from DEFAULT_BLOCKS
+        const loaded = {
+          ...DEFAULT_CONTENT,
+          ...data.data,
+          BLOCKS: DEFAULT_BLOCKS.map((def) => ({
+            ...def,
+            title: data.data.BLOCKS?.find((b) => b.id === def.id)?.title ?? def.title,
+          })),
+        };
+        setContent(loaded);
+        savedRef.current = loaded;
+      } catch (err) {
+        console.error("[ContentContext] Failed to load from Supabase:", err);
+        // Fall back to defaults silently — app remains functional
       }
-
-      // Merge: Supabase wins for data fields, geometry always from DEFAULT_BLOCKS
-      const loaded = {
-        ...DEFAULT_CONTENT,
-        ...data.data,
-        BLOCKS: DEFAULT_BLOCKS.map((def) => ({
-          ...def,
-          title: data.data.BLOCKS?.find((b) => b.id === def.id)?.title ?? def.title,
-        })),
-      };
-      setContent(loaded);
-      savedRef.current = loaded;
     }
     load();
   }, []);

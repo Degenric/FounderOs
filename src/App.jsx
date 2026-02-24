@@ -1,7 +1,23 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, Component } from "react";
 import { ContentProvider, useContent } from "./context/ContentContext.jsx";
 import { EditProvider } from "./context/EditContext.jsx";
 import { useEdit } from "./context/EditContext.jsx";
+
+class ErrorBoundary extends Component {
+  constructor(props) { super(props); this.state = { error: null }; }
+  static getDerivedStateFromError(error) { return { error }; }
+  render() {
+    if (this.state.error) {
+      return (
+        <div style={{ position: "fixed", inset: 0, background: "#0c0c0c", color: "#f87171",
+          fontFamily: "monospace", padding: 32, fontSize: 13, whiteSpace: "pre-wrap" }}>
+          {"[App Error]\n" + String(this.state.error)}
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
 import Header from "./components/Header.jsx";
 import EcosystemMap from "./components/EcosystemMap.jsx";
 import DetailPanel from "./components/DetailPanel.jsx";
@@ -223,11 +239,13 @@ function AppInner() {
 
 export default function App() {
   return (
-    <ContentProvider>
-      <EditProvider>
-        <AppInner />
-        <EditBar />
-      </EditProvider>
-    </ContentProvider>
+    <ErrorBoundary>
+      <ContentProvider>
+        <EditProvider>
+          <AppInner />
+          <EditBar />
+        </EditProvider>
+      </ContentProvider>
+    </ErrorBoundary>
   );
 }
