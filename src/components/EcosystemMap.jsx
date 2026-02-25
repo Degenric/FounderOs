@@ -117,6 +117,7 @@ function CenterBlock({ block, items, highlightedIds, hasSelection, onFeatureSele
                     opacity: hasSelection && !isActive && !isFocused ? 0.12 : 1,
                     transition: "opacity 0.22s ease",
                     userSelect: "none",
+                    touchAction: "manipulation",
                   }}
                 >
                   {/* Accent dot */}
@@ -171,6 +172,7 @@ function CenterBlock({ block, items, highlightedIds, hasSelection, onFeatureSele
                     textTransform: "uppercase",
                     whiteSpace: "nowrap",
                     cursor: "pointer",
+                    touchAction: "manipulation",
                     border: `1px solid ${
                       isFocused
                         ? accentColor + "dd"

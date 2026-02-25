@@ -2,6 +2,7 @@ import { useState, useEffect, Component } from "react";
 import { ContentProvider, useContent } from "./context/ContentContext.jsx";
 import { EditProvider } from "./context/EditContext.jsx";
 import { useEdit } from "./context/EditContext.jsx";
+import { useIsMobile } from "./hooks/useIsMobile.js";
 
 class ErrorBoundary extends Component {
   constructor(props) { super(props); this.state = { error: null }; }
@@ -28,6 +29,7 @@ import EditBar from "./components/EditBar.jsx";
 function AppInner() {
   const { content, setContent } = useContent();
   const { isEditing } = useEdit();
+  const isMobile = useIsMobile();
 
   const [selectedId, setSelectedId] = useState(null);
   const [selectedSubId, setSelectedSubId] = useState(null);
@@ -167,6 +169,21 @@ function AppInner() {
     }));
   }
 
+  const sharedDetailProps = {
+    stakeholder: activeStakeholder,
+    selectedSubId,
+    onSubChange: (subId) => handleSubSelect(selectedId, subId),
+    onStakeholderChange: handleStakeholderChange,
+    onClose: () => { setSelectedId(null); setSelectedSubId(null); },
+  };
+
+  const sharedFeatureProps = {
+    feature: selectedFeature?.item ?? null,
+    accentColor: selectedFeature?.accentColor ?? "#8b9aff",
+    onFeatureChange: handleFeatureChange,
+    onClose: closeFeature,
+  };
+
   return (
     <div
       style={{
@@ -178,7 +195,7 @@ function AppInner() {
     >
       <Header selectedId={selectedId} onClear={() => setSelectedId(null)} />
 
-      <main style={{ maxWidth: 1400, margin: "0 auto", padding: "20px 28px 48px" }}>
+      <main style={{ maxWidth: 1400, margin: "0 auto", padding: isMobile ? "10px 10px 40px" : "20px 28px 48px" }}>
         {/* Context strip */}
         <div
           style={{
@@ -192,12 +209,13 @@ function AppInner() {
           {selectedId ? (
             <div
               style={{
-                fontSize: 10,
+                fontSize: isMobile ? 9 : 10,
                 color: activeStakeholder?.color,
                 letterSpacing: "0.12em",
                 fontFamily: "'Victor Mono', monospace",
                 fontWeight: 700,
                 textTransform: "uppercase",
+                textAlign: "center",
               }}
             >
               {activeStakeholder?.label} — {activeStakeholder?.tagline}
@@ -210,9 +228,10 @@ function AppInner() {
                 letterSpacing: "0.1em",
                 fontFamily: "'Victor Mono', monospace",
                 textTransform: "uppercase",
+                textAlign: "center",
               }}
             >
-              Select a stakeholder · Click any block element for details
+              {isMobile ? "Tap a node to explore" : "Select a stakeholder · Click any block element for details"}
             </div>
           )}
         </div>
@@ -231,32 +250,32 @@ function AppInner() {
           blocks={content.BLOCKS}
           onBlockTitleChange={handleBlockTitleChange}
         />
+
+        {/* Mobile: panels inline below the map */}
+        {isMobile && !selectedFeature && (
+          <DetailPanel isMobile {...sharedDetailProps} />
+        )}
+        {isMobile && (
+          <FeaturePanel isMobile {...sharedFeatureProps} />
+        )}
       </main>
 
-      <CompaniesPanel
-        stakeholder={activeStakeholder}
-        onClose={() => setSelectedId(null)}
-        onCompanyChange={(companyId, field, value) =>
-          handleCompanyChange(selectedId, companyId, field, value)
-        }
-      />
-
-      {!selectedFeature && (
-        <DetailPanel
+      {/* Desktop: fixed overlay panels */}
+      {!isMobile && (
+        <CompaniesPanel
           stakeholder={activeStakeholder}
-          selectedSubId={selectedSubId}
-          onSubChange={(subId) => handleSubSelect(selectedId, subId)}
-          onStakeholderChange={handleStakeholderChange}
-          onClose={() => { setSelectedId(null); setSelectedSubId(null); }}
+          onClose={() => setSelectedId(null)}
+          onCompanyChange={(companyId, field, value) =>
+            handleCompanyChange(selectedId, companyId, field, value)
+          }
         />
       )}
-
-      <FeaturePanel
-        feature={selectedFeature?.item ?? null}
-        accentColor={selectedFeature?.accentColor ?? "#8b9aff"}
-        onFeatureChange={handleFeatureChange}
-        onClose={closeFeature}
-      />
+      {!isMobile && !selectedFeature && (
+        <DetailPanel {...sharedDetailProps} />
+      )}
+      {!isMobile && (
+        <FeaturePanel {...sharedFeatureProps} />
+      )}
     </div>
   );
 }

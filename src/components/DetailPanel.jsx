@@ -92,7 +92,7 @@ function Section({ label, accentColor, items, onItemsChange }) {
   );
 }
 
-export default function DetailPanel({ stakeholder, selectedSubId, onSubChange, onStakeholderChange, onClose }) {
+export default function DetailPanel({ stakeholder, selectedSubId, onSubChange, onStakeholderChange, onClose, isMobile }) {
   const activeSub = selectedSubId
     ? stakeholder?.subcategories?.find((s) => s.id === selectedSubId)
     : null;
@@ -111,23 +111,31 @@ export default function DetailPanel({ stakeholder, selectedSubId, onSubChange, o
     <AnimatePresence>
       {stakeholder && (
         <>
-          <motion.div
-            key="backdrop"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.18 }}
-            onClick={onClose}
-            style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.55)", zIndex: 40 }}
-          />
+          {/* Backdrop — desktop only */}
+          {!isMobile && (
+            <motion.div
+              key="backdrop"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.18 }}
+              onClick={onClose}
+              style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.55)", zIndex: 40 }}
+            />
+          )}
 
           <motion.div
             key="panel"
-            initial={{ x: "100%" }}
-            animate={{ x: 0 }}
-            exit={{ x: "100%" }}
-            transition={{ type: "spring", stiffness: 320, damping: 32 }}
-            style={{
+            initial={isMobile ? { opacity: 0, y: 16 } : { x: "100%" }}
+            animate={isMobile ? { opacity: 1, y: 0 } : { x: 0 }}
+            exit={isMobile ? { opacity: 0, y: 16 } : { x: "100%" }}
+            transition={isMobile ? { duration: 0.22 } : { type: "spring", stiffness: 320, damping: 32 }}
+            style={isMobile ? {
+              width: "100%",
+              background: "#0c0c0c",
+              borderTop: `1px solid ${accentColor}30`,
+              marginTop: 12,
+            } : {
               position: "fixed", top: 0, right: 0,
               width: 400, height: "100vh",
               background: "#0c0c0c",
@@ -138,7 +146,7 @@ export default function DetailPanel({ stakeholder, selectedSubId, onSubChange, o
             {/* Header */}
             <div
               style={{
-                padding: "24px 24px 20px",
+                padding: isMobile ? "16px 16px 14px" : "24px 24px 20px",
                 borderBottom: "1px solid rgba(255,255,255,0.06)",
                 background: `linear-gradient(135deg, ${accentColor}08, transparent)`,
                 position: "relative",
@@ -216,7 +224,7 @@ export default function DetailPanel({ stakeholder, selectedSubId, onSubChange, o
             </div>
 
             {/* Provides / Gets */}
-            <div style={{ flex: 1, overflowY: "auto", padding: "20px 24px" }}>
+            <div style={isMobile ? { padding: "16px 16px 24px" } : { flex: 1, overflowY: "auto", padding: "20px 24px" }}>
               <Section
                 label="Provides"
                 accentColor={accentColor}
@@ -231,21 +239,23 @@ export default function DetailPanel({ stakeholder, selectedSubId, onSubChange, o
               />
             </div>
 
-            {/* Footer */}
-            <div style={{ padding: "14px 24px", borderTop: "1px solid rgba(255,255,255,0.06)" }}>
-              <button
-                style={{
-                  width: "100%", padding: "10px 16px", background: "transparent",
-                  border: `1px solid ${accentColor}60`, color: accentColor, cursor: "pointer",
-                  fontSize: 9, fontFamily: MONO, fontWeight: 700, letterSpacing: "0.18em",
-                  textTransform: "uppercase", transition: "background 0.2s",
-                }}
-                onMouseEnter={(e) => (e.target.style.background = `${accentColor}12`)}
-                onMouseLeave={(e) => (e.target.style.background = "transparent")}
-              >
-                View Package Details →
-              </button>
-            </div>
+            {/* Footer — desktop only */}
+            {!isMobile && (
+              <div style={{ padding: "14px 24px", borderTop: "1px solid rgba(255,255,255,0.06)" }}>
+                <button
+                  style={{
+                    width: "100%", padding: "10px 16px", background: "transparent",
+                    border: `1px solid ${accentColor}60`, color: accentColor, cursor: "pointer",
+                    fontSize: 9, fontFamily: MONO, fontWeight: 700, letterSpacing: "0.18em",
+                    textTransform: "uppercase", transition: "background 0.2s",
+                  }}
+                  onMouseEnter={(e) => (e.target.style.background = `${accentColor}12`)}
+                  onMouseLeave={(e) => (e.target.style.background = "transparent")}
+                >
+                  View Package Details →
+                </button>
+              </div>
+            )}
           </motion.div>
         </>
       )}

@@ -47,7 +47,7 @@ function SectionLabel({ label, color }) {
   );
 }
 
-export default function FeaturePanel({ feature, accentColor, onClose, onFeatureChange }) {
+export default function FeaturePanel({ feature, accentColor, onClose, onFeatureChange, isMobile }) {
   const { isEditing } = useEdit();
 
   const selectedIds = feature?.stakeholders ?? [];
@@ -67,30 +67,37 @@ export default function FeaturePanel({ feature, accentColor, onClose, onFeatureC
     <AnimatePresence>
       {feature && (
         <>
-          {/* Backdrop */}
-          <motion.div
-            key="feat-backdrop"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.18 }}
-            onClick={onClose}
-            style={{
-              position: "fixed",
-              inset: 0,
-              background: "rgba(0,0,0,0.55)",
-              zIndex: 40,
-            }}
-          />
+          {/* Backdrop — desktop only */}
+          {!isMobile && (
+            <motion.div
+              key="feat-backdrop"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.18 }}
+              onClick={onClose}
+              style={{
+                position: "fixed",
+                inset: 0,
+                background: "rgba(0,0,0,0.55)",
+                zIndex: 40,
+              }}
+            />
+          )}
 
           {/* Panel */}
           <motion.div
             key="feat-panel"
-            initial={{ x: "100%" }}
-            animate={{ x: 0 }}
-            exit={{ x: "100%" }}
-            transition={{ type: "spring", stiffness: 320, damping: 32 }}
-            style={{
+            initial={isMobile ? { opacity: 0, y: 16 } : { x: "100%" }}
+            animate={isMobile ? { opacity: 1, y: 0 } : { x: 0 }}
+            exit={isMobile ? { opacity: 0, y: 16 } : { x: "100%" }}
+            transition={isMobile ? { duration: 0.22 } : { type: "spring", stiffness: 320, damping: 32 }}
+            style={isMobile ? {
+              width: "100%",
+              background: "#0c0c0c",
+              borderTop: `1px solid ${accentColor}30`,
+              marginTop: 12,
+            } : {
               position: "fixed",
               top: 0,
               right: 0,
@@ -107,7 +114,7 @@ export default function FeaturePanel({ feature, accentColor, onClose, onFeatureC
             {/* Header */}
             <div
               style={{
-                padding: "24px 24px 20px",
+                padding: isMobile ? "16px 16px 14px" : "24px 24px 20px",
                 borderBottom: "1px solid rgba(255,255,255,0.06)",
                 background: `linear-gradient(135deg, ${accentColor}08, transparent)`,
                 position: "relative",
@@ -171,7 +178,7 @@ export default function FeaturePanel({ feature, accentColor, onClose, onFeatureC
             </div>
 
             {/* Scrollable body */}
-            <div style={{ flex: 1, overflowY: "auto", padding: "22px 24px" }}>
+            <div style={isMobile ? { padding: "16px 16px 24px" } : { flex: 1, overflowY: "auto", padding: "22px 24px" }}>
 
               {/* Key Stakeholders */}
               <div style={{ marginBottom: 26 }}>
